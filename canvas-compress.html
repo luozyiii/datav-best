@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>canvas图片压缩</title>
+  </head>
+  <body>
+    <input type="file" id="upload" />
+    <script>
+      const ACCRPT = ["image/jpg", "image/png", "image/jpeg"]; // 支持的图片格式
+      const MAXSIZE = 1024 * 1024; // 最大尺寸 1M
+      const MAXSIZE_STR = "1MB";
+      const upload = document.getElementById("upload");
+
+      // 将图片转成base64
+      function converImageToBase64(file, callback) {
+        let reader = new FileReader();
+        reader.addEventListener("load", (e) => {
+          // console.log(e.target.result);
+          const base64Image = e.target.result;
+          callback && callback(base64Image);
+          reader = null;
+        });
+        reader.readAsDataURL(file);
+      }
+
+      /**
+       * 压缩算法
+       * 1、图片的尺寸 不能超过1024 * 1024
+       * 2、图片的分辨率 toDataURL
+       */
+      function compress(base64Image, callback) {
+        // console.log(base64Image);
+        let maxW = 1024;
+        let maxH = 1024;
+        const image = new Image();
+        image.addEventListener("load", (e) => {
+          let ratio; // 图片压缩比
+          let needCompress = false; // 是否需要压缩
+          if (maxW < image.naturalWidth) {
+            needCompress = true;
+            ratio = image.naturalWidth / maxW;
+            maxH = image.naturalHeight / ratio;
+          }
+          if (maxH < image.naturalHeight) {
+            needCompress = true;
+            ratio = image.naturalHeight / maxH;
+            maxW = image.naturalWidth / ratio;
+          }
+          // 如果不需要压缩，需要获取图片的实际尺寸
+          if (!needCompress) {
+            maxW = image.naturalWidth;
+            maxH = image.naturalHeight;
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.setAttribute("id", "__compress__");
+          canvas.width = maxW;
+          canvas.height = maxH;
+          canvas.style.visibility = "hidden"; // visible
+          document.body.appendChild(canvas);
+
+          const ctx = canvas.getContext("2d");
+          ctx.clearRect(0, 0, maxW, maxH);
+          ctx.drawImage(image, 0, 0, maxW, maxH);
+
+          const compressImage = canvas.toDataURL("image/jpeg", 0.8);
+          // console.log(compressImage);
+          callback && callback(compressImage);
+          canvas.remove();
+          let _image = new Image();
+          _image.src = compressImage;
+          document.body.appendChild(_image);
+          console.log("压缩比：", image.src.length / _image.src.length);
+        });
+        image.src = base64Image;
+        document.body.appendChild(image);
+      }
+
+      // 将图片上传到服务器
+      function upLoadToServer(compressImage) {
+        console.log("upload to server...", compressImage);
+      }
+
+      upload.addEventListener("change", (e) => {
+        console.log(e.target.files);
+        const [file] = e.target.files;
+        if (!file) {
+          return;
+        }
+        const { type: fileType, size: fileSize } = file;
+        /**
+         * 文件类型校验
+         * 旧的判断写法：ACCRPT.indexOf(fileType) < 0
+         * 新写法 ACCRPT.includes(fileType)
+         */
+        if (!ACCRPT.includes(fileType)) {
+          alert(`不支持[${fileType}]文件类型`);
+          upload.value = "";
+          return;
+        }
+        // 文件大小校验
+        if (fileSize > MAXSIZE) {
+          alert(`文件超出${MAXSIZE_STR}`);
+          upload.value = "";
+          return;
+        }
+        // 压缩图片
+        converImageToBase64(file, (base64Image) =>
+          compress(base64Image, upLoadToServer)
+        );
+      });
+    </script>
+  </body>
+</html>
