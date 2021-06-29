@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <script
+      type="text/javascript"
+      src="https://webapi.amap.com/maps?v=1.4.15&key=a405a00a8fccd5c276e151d4aefc73ec"
+    ></script>
+    <title>高德地图-绘制点标记</title>
+    <style>
+      html,
+      body,
+      #container {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      #layer-btn {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div id="container"></div>
+    </div>
+
+    <script>
+      var map = new AMap.Map("container", {
+        zoom: 15, //级别
+        center: [116.397428, 39.90923], //中心点坐标
+      });
+
+      // 绘制点标记
+      // 创建一个 Marker 实例：
+      var marker = new AMap.Marker({
+        position: new AMap.LngLat(116.39, 39.9), // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
+        title: "北京",
+      });
+
+      // 将创建的点标记添加到已有的地图实例：
+      map.add(marker);
+
+      // 折线的节点坐标数组，每个元素为 AMap.LngLat 对象
+      var path = [
+        new AMap.LngLat(116.368904, 39.913423),
+        new AMap.LngLat(116.382122, 39.901176),
+        new AMap.LngLat(116.387271, 39.912501),
+        new AMap.LngLat(116.398258, 39.9046),
+      ];
+
+      // 创建折线实例
+      var polyline = new AMap.Polyline({
+        path: path,
+        borderWeight: 2, // 线条宽度，默认为 1
+        strokeColor: "red", // 线条颜色
+        lineJoin: "round", // 折线拐点连接处样式
+      });
+
+      // 将折线添加至地图实例
+      map.add(polyline);
+    </script>
+  </body>
+</html>
